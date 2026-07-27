@@ -26,7 +26,7 @@ class QiblaFragment : Fragment(), SensorEventListener {
 
     private val gravity = FloatArray(3)
     private val geomagnetic = FloatArray(3)
-    private val currentDegree = 0f
+    private var currentDegree = 0f
 
     companion object {
         private const val ASEELAN_LAT = 25.45
@@ -76,7 +76,7 @@ class QiblaFragment : Fragment(), SensorEventListener {
         if (success) {
             val orientation = FloatArray(3)
             SensorManager.getOrientation(rotationMatrix, orientation)
-            val azimuth = (Math.toDegrees(orientation[0].toDouble()) * (180.0 / Math.PI)).toFloat()
+            val azimuth = (Math.toDegrees(orientation[0].toDouble())).toFloat()
             val normalizedAzimuth = (azimuth + 360) % 360
 
             val qiblaBearing = calculateQiblaBearing(ASEELAN_LAT, ASEELAN_LON, KAABA_LAT, KAABA_LON)
@@ -99,8 +99,8 @@ class QiblaFragment : Fragment(), SensorEventListener {
 
         val y = sin(deltaLon) * cos(lat2Rad)
         val x = cos(lat1Rad) * sin(lat2Rad) - sin(lat1Rad) * cos(lat2Rad) * cos(deltaLon)
-        var bearing = Math.toDegrees(atan2(y, x))
-        bearing = (bearing + 360) % 360
+        val rawBearing = Math.toDegrees(atan2(y, x))
+        val bearing = (rawBearing + 360) % 360
         return bearing.toFloat()
     }
 
