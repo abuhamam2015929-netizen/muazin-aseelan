@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RadioButton xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/radio_muadhin"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layoutDirection="rtl"
+    android:paddingVertical="14dp"
+    android:paddingHorizontal="4dp"
+    android:text="اسم المؤذن"
+    android:textColor="@color/text_dark"
+    android:textSize="16sp"
+    android:buttonTint="@color/olive_medium" />

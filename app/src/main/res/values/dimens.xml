@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="margin_screen">16dp</dimen>
+    <dimen name="card_radius">18dp</dimen>
+    <dimen name="card_radius_small">14dp</dimen>
+</resources>

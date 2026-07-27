@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">مؤذن عسيلان</string>
+    <string name="location_name">عسيلان</string>
+
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_qibla">القبلة</string>
+    <string name="nav_settings">الإعدادات</string>
+
+    <string name="prayer_fajr">الفجر</string>
+    <string name="prayer_shuruq">الشروق</string>
+    <string name="prayer_dhuhr">الظهر</string>
+    <string name="prayer_asr">العصر</string>
+    <string name="prayer_maghrib">المغرب</string>
+    <string name="prayer_isha">العشاء</string>
+
+    <string name="next_prayer_title">الصلاة القادمة</string>
+    <string name="time_remaining">متبقي على الأذان</string>
+    <string name="upcoming_badge">القادمة</string>
+
+    <string name="prayer_times_section">مواقيت الصلاة</string>
+    <string name="qibla_direction">اتجاه القبلة</string>
+
+    <string name="alert_mode_title">اختر نمط التنبيه</string>
+    <string name="alert_full_azan">أذان كامل</string>
+    <string name="alert_short_beep">تنبيه قصير</string>
+    <string name="alert_silent">صامت</string>
+    <string name="alert_off">إيقاف</string>
+
+    <string name="choose_muadhin">اختر صوت الأذان</string>
+    <string name="cancel">إلغاء</string>
+    <string name="save">حفظ</string>
+    <string name="ok">موافق</string>
+
+    <string name="pre_reminder_title">التذكير المسبق</string>
+    <string name="pre_reminder_none">بدون</string>
+    <string name="pre_reminder_5">5 دقائق</string>
+    <string name="pre_reminder_10">10 دقائق</string>
+    <string name="pre_reminder_15">15 دقيقة</string>
+
+    <string name="manual_offset_title">تعديل يدوي للوقت (بالدقائق)</string>
+    <string name="hijri_offset_title">تعديل التاريخ الهجري (بالأيام)</string>
+
+    <string name="settings_general">إعدادات عامة</string>
+    <string name="settings_per_prayer">إعدادات كل صلاة</string>
+
+    <string name="qibla_calibrate">قم بمعايرة البوصلة بعيداً عن المعادن</string>
+    <string name="qibla_facing">أنت متجه نحو القبلة</string>
+
+    <string name="notif_channel_name">تنبيهات الأذان</string>
+    <string name="notif_channel_desc">إشعارات مواقيت الصلاة والأذان</string>
+    <string name="notif_prayer_time">حان الآن وقت صلاة %1$s</string>
+    <string name="notif_pre_reminder">تبقى %1$d دقيقة على أذان %2$s</string>
+    <string name="notif_ongoing_title">مؤذن عسيلان يعمل في الخلفية</string>
+    <string name="notif_ongoing_desc">جاري رصد مواقيت الصلاة القادمة</string>
+
+    <string name="stop_azan">إيقاف الأذان</string>
+    <string name="hijri_calendar">التقويم الهجري</string>
+</resources>
