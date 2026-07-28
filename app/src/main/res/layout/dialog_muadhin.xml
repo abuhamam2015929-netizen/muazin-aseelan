@@ -16,11 +16,11 @@
         android:textSize="19sp"
         android:textStyle="bold" />
 
-    <RadioGroup
+   <LinearLayout
         android:id="@+id/radio_group_muadhin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" />
+        android:orientation="vertical" /> 
 
     <TextView
         android:id="@+id/btn_cancel_dialog"
