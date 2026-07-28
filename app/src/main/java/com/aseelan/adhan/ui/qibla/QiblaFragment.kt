@@ -29,15 +29,16 @@ class QiblaFragment : Fragment(), SensorEventListener {
     private var currentDegree = 0f
 
     companion object {
-        private const val ASEELAN_LAT = 25.45
-        private const val ASEELAN_LON = 43.15
+        // إحداثيات دقيقة لموقع المستخدم في ديرة آل حويلة - عسيلان - شبوة - اليمن
+        // 15°03'02.03"N 45°49'22.02"E
+        private const val ASEELAN_LAT = 15.050564
+        private const val ASEELAN_LON = 45.822783
         private const val KAABA_LAT = 21.4225
         private const val KAABA_LON = 39.8262
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentQiblaBinding.inflate(inflater, container, false)
         return binding.root
@@ -45,19 +46,22 @@ class QiblaFragment : Fragment(), SensorEventListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        sensorManager = requireActivity().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        sensorManager = requireContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+
+        val qiblaBearing = calculateQiblaBearing(ASEELAN_LAT, ASEELAN_LON, KAABA_LAT, KAABA_LON)
+        binding.textQiblaAngle.text = "${qiblaBearing.toInt()}°"
+
+        if (accelerometer == null || magnetometer == null) {
+            binding.textQiblaAngle.text = "لا تتوفر حساسات البوصلة في جهازك"
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        accelerometer?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
-        }
-        magnetometer?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
-        }
+        accelerometer?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+        magnetometer?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
     }
 
     override fun onPause() {
@@ -67,8 +71,8 @@ class QiblaFragment : Fragment(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent) {
         when (event.sensor.type) {
-            Sensor.TYPE_ACCELEROMETER -> System.arraycopy(event.values, 0, gravity, 0, gravity.size)
-            Sensor.TYPE_MAGNETIC_FIELD -> System.arraycopy(event.values, 0, geomagnetic, 0, geomagnetic.size)
+            Sensor.TYPE_ACCELEROMETER -> System.arraycopy(event.values, 0, gravity, 0, 3)
+            Sensor.TYPE_MAGNETIC_FIELD -> System.arraycopy(event.values, 0, geomagnetic, 0, 3)
         }
 
         val rotationMatrix = FloatArray(9)
@@ -76,7 +80,7 @@ class QiblaFragment : Fragment(), SensorEventListener {
         if (success) {
             val orientation = FloatArray(3)
             SensorManager.getOrientation(rotationMatrix, orientation)
-            val azimuth = (Math.toDegrees(orientation[0].toDouble())).toFloat()
+            val azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
             val normalizedAzimuth = (azimuth + 360) % 360
 
             val qiblaBearing = calculateQiblaBearing(ASEELAN_LAT, ASEELAN_LON, KAABA_LAT, KAABA_LON)
@@ -92,16 +96,16 @@ class QiblaFragment : Fragment(), SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
-    private fun calculateQiblaBearing(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+    private fun calculateQiblaBearing(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val lat1Rad = Math.toRadians(lat1)
         val lat2Rad = Math.toRadians(lat2)
         val deltaLon = Math.toRadians(lon2 - lon1)
 
         val y = sin(deltaLon) * cos(lat2Rad)
         val x = cos(lat1Rad) * sin(lat2Rad) - sin(lat1Rad) * cos(lat2Rad) * cos(deltaLon)
-        val rawBearing = Math.toDegrees(atan2(y, x))
-        val bearing = (rawBearing + 360) % 360
-        return bearing.toFloat()
+        var bearing = Math.toDegrees(atan2(y, x))
+        bearing = (bearing + 360) % 360
+        return bearing
     }
 
     override fun onDestroyView() {
