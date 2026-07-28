@@ -81,7 +81,7 @@ class QiblaFragment : Fragment(), SensorEventListener {
             val orientation = FloatArray(3)
             SensorManager.getOrientation(rotationMatrix, orientation)
             val azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
-            val normalizedAzimuth = (azimuth + 360) % 360
+            val needleRotation = ((qiblaBearing - normalizedAzimuth + 360) % 360).toFloat()
 
             val qiblaBearing = calculateQiblaBearing(ASEELAN_LAT, ASEELAN_LON, KAABA_LAT, KAABA_LON)
             val needleRotation = (qiblaBearing - normalizedAzimuth + 360) % 360
