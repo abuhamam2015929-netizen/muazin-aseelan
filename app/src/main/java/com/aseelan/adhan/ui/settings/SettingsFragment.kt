@@ -1,14 +1,17 @@
 package com.aseelan.adhan.ui.settings
 
 import android.app.AlertDialog
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.aseelan.adhan.alarm.AlarmScheduler
 import com.aseelan.adhan.data.AlertMode
+import com.aseelan.adhan.data.Muadhin
 import com.aseelan.adhan.data.MuadhinList
 import com.aseelan.adhan.data.PrayerType
 import com.aseelan.adhan.data.SettingsRepository
@@ -23,6 +26,8 @@ class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private lateinit var settings: SettingsRepository
+
+    private var previewPlayer: MediaPlayer? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -82,6 +87,11 @@ class SettingsFragment : Fragment() {
             itemBinding.radioMuadhin.id = View.generateViewId()
             itemBinding.radioMuadhin.isChecked = muadhin.id == currentId
             itemBinding.radioMuadhin.tag = muadhin.id
+
+            itemBinding.btnPreviewMuadhin.setOnClickListener {
+                playPreview(muadhin)
+            }
+
             dialogBinding.radioGroupMuadhin.addView(itemBinding.root)
         }
 
@@ -95,18 +105,54 @@ class SettingsFragment : Fragment() {
             settings.setGlobalMuadhinId(muadhinId)
             renderGlobalMuadhin()
             AlarmScheduler.scheduleAll(requireContext())
+            stopPreview()
             dialog.dismiss()
         }
 
-        dialogBinding.btnCancelDialog.setOnClickListener { dialog.dismiss() }
+        dialogBinding.btnCancelDialog.setOnClickListener {
+            stopPreview()
+            dialog.dismiss()
+        }
+
+        dialog.setOnDismissListener { stopPreview() }
         dialog.show()
+    }
+
+    private fun playPreview(muadhin: Muadhin) {
+        stopPreview()
+
+        val resId = resources.getIdentifier(muadhin.rawResName, "raw", requireContext().packageName)
+        if (resId == 0) {
+            Toast.makeText(
+                requireContext(),
+                "لم يتم رفع صوت هذا المؤذن بعد",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        try {
+            previewPlayer = MediaPlayer.create(requireContext(), resId)
+            previewPlayer?.setOnCompletionListener { stopPreview() }
+            previewPlayer?.start()
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "تعذّر تشغيل الصوت", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun stopPreview() {
+        try {
+            previewPlayer?.stop()
+            previewPlayer?.release()
+        } catch (_: Exception) {
+        }
+        previewPlayer = null
     }
 
     private fun showPrayerSettingsDialog(prayer: PrayerType) {
         val db = DialogPrayerSettingsBinding.inflate(layoutInflater)
         db.textDialogPrayerName.text = prayer.arabicName
 
-        // وضع التنبيه الحالي
         when (settings.getAlertMode(prayer)) {
             AlertMode.FULL_ADHAN -> db.radioFullAzan.isChecked = true
             AlertMode.SHORT_BEEP -> db.radioShortBeep.isChecked = true
@@ -114,7 +160,6 @@ class SettingsFragment : Fragment() {
             AlertMode.OFF -> db.radioOff.isChecked = true
         }
 
-        // التذكير المسبق الحالي
         when (settings.getPreReminderMinutes(prayer)) {
             5 -> db.radioReminder5.isChecked = true
             10 -> db.radioReminder10.isChecked = true
@@ -164,6 +209,7 @@ class SettingsFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        stopPreview()
         _binding = null
         super.onDestroyView()
     }
