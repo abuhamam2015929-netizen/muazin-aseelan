@@ -16,6 +16,7 @@ import com.aseelan.adhan.databinding.FragmentHomeBinding
 import com.aseelan.adhan.databinding.ItemPrayerBinding
 import com.aseelan.adhan.ui.qibla.QiblaFragment
 import com.aseelan.adhan.ui.settings.SettingsFragment
+import com.aseelan.adhan.util.TimeFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -74,7 +75,7 @@ class HomeFragment : Fragment() {
         val times = PrayerTimesTable.getPrayerTimes(month, day)
         val nextPrayer = findNextPrayer()
 
-       val rows = listOf(
+        val rows = listOf(
             Pair(PrayerType.FAJR, times.fajr),
             Pair(PrayerType.SHURUQ, times.shuruq),
             Pair(PrayerType.DHUHR, times.dhuhr),
@@ -86,7 +87,8 @@ class HomeFragment : Fragment() {
         for ((prayer, time) in rows) {
             val itemBinding = ItemPrayerBinding.inflate(layoutInflater, binding.prayerListContainer, false)
             itemBinding.textPrayerName.text = prayer.arabicName
-            itemBinding.textPrayerTime.text = applyOffset(time, settings.getManualOffsetMinutes(prayer)) 
+            itemBinding.textPrayerTime.text = TimeFormat.to12Hour(applyOffset(time, settings.getManualOffsetMinutes(prayer)))
+
             val alertMode = settings.getAlertMode(prayer)
             itemBinding.iconAlertMode.setImageResource(alertIconFor(prayer, alertMode))
 
@@ -133,7 +135,7 @@ class HomeFragment : Fragment() {
             val target = timeToCalendar(time)
             if (target.after(now)) return prayer
         }
-        return PrayerType.FAJR // بعد العشاء، القادمة هي فجر الغد
+        return PrayerType.FAJR
     }
 
     private fun timeToCalendar(hhmm: String): Calendar {
@@ -157,7 +159,6 @@ class HomeFragment : Fragment() {
         var target = timeToCalendar(times.timeFor(nextPrayer))
 
         if (!target.after(now)) {
-            // الصلاة القادمة هي فجر الغد
             val tomorrow = now.clone() as Calendar
             tomorrow.add(Calendar.DAY_OF_YEAR, 1)
             val tMonth = tomorrow.get(Calendar.MONTH) + 1
