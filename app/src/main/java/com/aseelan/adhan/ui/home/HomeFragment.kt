@@ -74,21 +74,19 @@ class HomeFragment : Fragment() {
         val times = PrayerTimesTable.getPrayerTimes(month, day)
         val nextPrayer = findNextPrayer()
 
-        val rows = listOf(
-            Triple(PrayerType.FAJR, times.fajr, R.drawable.ic_fajr),
-            Triple(PrayerType.SHURUQ, times.shuruq, R.drawable.ic_shuruq),
-            Triple(PrayerType.DHUHR, times.dhuhr, R.drawable.ic_mosque),
-            Triple(PrayerType.ASR, times.asr, R.drawable.ic_asr),
-            Triple(PrayerType.MAGHRIB, times.maghrib, R.drawable.ic_maghrib),
-            Triple(PrayerType.ISHA, times.isha, R.drawable.ic_isha)
+       val rows = listOf(
+            Pair(PrayerType.FAJR, times.fajr),
+            Pair(PrayerType.SHURUQ, times.shuruq),
+            Pair(PrayerType.DHUHR, times.dhuhr),
+            Pair(PrayerType.ASR, times.asr),
+            Pair(PrayerType.MAGHRIB, times.maghrib),
+            Pair(PrayerType.ISHA, times.isha)
         )
 
-        for ((prayer, time, iconRes) in rows) {
+        for ((prayer, time) in rows) {
             val itemBinding = ItemPrayerBinding.inflate(layoutInflater, binding.prayerListContainer, false)
             itemBinding.textPrayerName.text = prayer.arabicName
-            itemBinding.textPrayerTime.text = applyOffset(time, settings.getManualOffsetMinutes(prayer))
-            itemBinding.iconPrayer.setImageResource(iconRes)
-
+            itemBinding.textPrayerTime.text = applyOffset(time, settings.getManualOffsetMinutes(prayer)) 
             val alertMode = settings.getAlertMode(prayer)
             itemBinding.iconAlertMode.setImageResource(alertIconFor(prayer, alertMode))
 
