@@ -81,32 +81,36 @@ class SettingsFragment : Fragment() {
         val dialogBinding = DialogMuadhinBinding.inflate(layoutInflater)
         val currentId = settings.getGlobalMuadhinId()
 
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+
+        val radioButtons = mutableListOf<RadioButton>()
+
         for (muadhin in MuadhinList.all) {
             val itemBinding = ItemMuadhinBinding.inflate(layoutInflater, dialogBinding.radioGroupMuadhin, false)
             itemBinding.radioMuadhin.text = muadhin.name
-            itemBinding.radioMuadhin.id = View.generateViewId()
             itemBinding.radioMuadhin.isChecked = muadhin.id == currentId
-            itemBinding.radioMuadhin.tag = muadhin.id
+            radioButtons.add(itemBinding.radioMuadhin)
 
             itemBinding.btnPreviewMuadhin.setOnClickListener {
                 playPreview(muadhin)
             }
 
+            val selectThisMuadhin = {
+                radioButtons.forEach { it.isChecked = false }
+                itemBinding.radioMuadhin.isChecked = true
+                settings.setGlobalMuadhinId(muadhin.id)
+                renderGlobalMuadhin()
+                AlarmScheduler.scheduleAll(requireContext())
+                stopPreview()
+                dialog.dismiss()
+            }
+
+            itemBinding.radioMuadhin.setOnClickListener { selectThisMuadhin() }
+            itemBinding.rowMuadhinItem.setOnClickListener { selectThisMuadhin() }
+
             dialogBinding.radioGroupMuadhin.addView(itemBinding.root)
-        }
-
-        val dialog = AlertDialog.Builder(requireContext())
-            .setView(dialogBinding.root)
-            .create()
-
-        dialogBinding.radioGroupMuadhin.setOnCheckedChangeListener { group, checkedId ->
-            val checkedButton = group.findViewById<RadioButton>(checkedId)
-            val muadhinId = checkedButton?.tag as? Int ?: return@setOnCheckedChangeListener
-            settings.setGlobalMuadhinId(muadhinId)
-            renderGlobalMuadhin()
-            AlarmScheduler.scheduleAll(requireContext())
-            stopPreview()
-            dialog.dismiss()
         }
 
         dialogBinding.btnCancelDialog.setOnClickListener {
