@@ -15,7 +15,7 @@
     android:paddingBottom="12dp">
 
     <ImageView
-        android:id="@+id/iconPrayer"
+        android:id="@+id/icon_prayer"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="gone" />
@@ -28,7 +28,7 @@
         android:layout_weight="1"
         android:gravity="start"
         android:text="صلاة"
-        android:textColor="@android:color/black"
+        android:textColor="@color/text_color"
         android:textSize="17sp"
         android:textStyle="bold" />
 
@@ -38,11 +38,11 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:text="00:00"
-        android:textColor="@android:color/black"
+        android:textColor="@color/text_color"
         android:textSize="18sp" />
 
     <ImageView
-        android:id="@+id/iconAlertState"
+        android:id="@+id/icon_alert_state"
         android:layout_width="22dp"
         android:layout_height="22dp"
         android:src="@drawable/ic_sound_full" />
