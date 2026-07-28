@@ -2,28 +2,27 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginBottom="6dp"
     android:background="@drawable/bg_prayer_item"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="14dp">
-
-    <ImageView
-        android:id="@+id/icon_prayer"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
-        android:src="@drawable/ic_mosque" />
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp">
 
     <TextView
         android:id="@+id/text_prayer_name"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="14dp"
+        android:layout_marginStart="8dp"
         android:layout_weight="1"
         android:gravity="start"
-        android:text="الفجر"
-        android:textColor="@color/text_dark"
+        android:text="صلاة"
+        android:textColor="#color/text_color"
         android:textSize="17sp"
         android:textStyle="bold" />
 
@@ -31,13 +30,13 @@
         android:id="@+id/text_prayer_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="14dp"
+        android:layout_marginEnd="8dp"
         android:text="00:00"
-        android:textColor="@color/text_dark"
+        android:textColor="#color/text_color"
         android:textSize="18sp" />
 
     <ImageView
-        android:id="@+id/icon_alert_mode"
+        android:id="@+id/icon_alert_state"
         android:layout_width="22dp"
         android:layout_height="22dp"
         android:src="@drawable/ic_sound_full" />
