@@ -14,7 +14,6 @@ import com.aseelan.adhan.data.PrayerType
 import com.aseelan.adhan.data.SettingsRepository
 import com.aseelan.adhan.databinding.FragmentHomeBinding
 import com.aseelan.adhan.databinding.ItemPrayerBinding
-import com.aseelan.adhan.databinding.ItemWeekDayBinding
 import com.aseelan.adhan.ui.qibla.QiblaFragment
 import com.aseelan.adhan.ui.settings.SettingsFragment
 import java.text.SimpleDateFormat
@@ -28,9 +27,6 @@ class HomeFragment : Fragment() {
     private var countdownTimer: CountDownTimer? = null
     private lateinit var settings: SettingsRepository
 
-    // اليوم الذي يُعرض حالياً في قائمة المواقيت وسطر التاريخ (قابل للتغيير من شريط الأسبوع)
-    private var selectedCalendar: Calendar = Calendar.getInstance()
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -41,13 +37,11 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         settings = SettingsRepository(requireContext())
-        selectedCalendar = Calendar.getInstance()
 
         binding.btnSettings.setOnClickListener { openTab(SettingsFragment()) }
         binding.btnBell.setOnClickListener { openTab(SettingsFragment()) }
         binding.btnQiblaShortcut.setOnClickListener { openTab(QiblaFragment()) }
 
-        renderWeekStrip()
         renderDates()
         renderPrayerList()
         startCountdown()
@@ -59,79 +53,26 @@ class HomeFragment : Fragment() {
             .commit()
     }
 
-    /**
-     * يبني شريط أيام الأسبوع الحالي (من الأحد إلى السبت) مع تمييز اليوم المختار حالياً،
-     * ويسمح بالنقر على أي يوم لعرض مواقيته في القائمة أسفله.
-     */
-    private fun renderWeekStrip() {
-        binding.weekStripContainer.removeAllViews()
-
-        val today = Calendar.getInstance()
-        val weekStart = today.clone() as Calendar
-        // نرجع لبداية الأسبوع (الأحد)
-        val diffToSunday = weekStart.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
-        weekStart.add(Calendar.DAY_OF_MONTH, -diffToSunday)
-
-        val dayNameFormat = SimpleDateFormat("EEE", Locale("ar"))
-
-        for (i in 0..6) {
-            val dayCal = weekStart.clone() as Calendar
-            dayCal.add(Calendar.DAY_OF_MONTH, i)
-
-            val cellBinding = ItemWeekDayBinding.inflate(layoutInflater, binding.weekStripContainer, false)
-            cellBinding.textWeekDayName.text = dayNameFormat.format(dayCal.time)
-            cellBinding.textWeekDayNumber.text = dayCal.get(Calendar.DAY_OF_MONTH).toString()
-
-            val isSelected = isSameDay(dayCal, selectedCalendar)
-            applyWeekDayStyle(cellBinding, isSelected)
-
-            cellBinding.weekDayRoot.setOnClickListener {
-                selectedCalendar = dayCal.clone() as Calendar
-                renderWeekStrip()
-                renderDates()
-                renderPrayerList()
-            }
-
-            binding.weekStripContainer.addView(cellBinding.root)
-        }
-    }
-
-    private fun applyWeekDayStyle(cellBinding: ItemWeekDayBinding, isSelected: Boolean) {
-        if (isSelected) {
-            cellBinding.weekDayRoot.setBackgroundResource(R.drawable.bg_week_day_selected)
-            cellBinding.textWeekDayName.setTextColor(resources.getColor(R.color.off_white, null))
-            cellBinding.textWeekDayNumber.setTextColor(resources.getColor(R.color.gold, null))
-        } else {
-            cellBinding.weekDayRoot.setBackgroundResource(R.drawable.bg_week_day)
-            cellBinding.textWeekDayName.setTextColor(resources.getColor(R.color.olive_dark, null))
-            cellBinding.textWeekDayNumber.setTextColor(resources.getColor(R.color.olive_dark, null))
-        }
-    }
-
-    private fun isSameDay(a: Calendar, b: Calendar): Boolean {
-        return a.get(Calendar.YEAR) == b.get(Calendar.YEAR) &&
-                a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR)
-    }
-
     private fun renderDates() {
+        val cal = Calendar.getInstance()
+
         val dayNameFormat = SimpleDateFormat("EEEE", Locale("ar"))
+        binding.textDayName.text = dayNameFormat.format(cal.time)
+
         val gregorianFormat = SimpleDateFormat("d MMMM yyyy", Locale("ar"))
+        binding.textGregorianDate.text = gregorianFormat.format(cal.time)
 
-        binding.textGregorianDate.text =
-            "${dayNameFormat.format(selectedCalendar.time)} - ${gregorianFormat.format(selectedCalendar.time)}"
-
-        val hijri = HijriDateConverter.fromGregorian(selectedCalendar, settings.getHijriDayOffset())
+        val hijri = HijriDateConverter.fromGregorian(cal, settings.getHijriDayOffset())
         binding.textHijriDate.text = hijri.formatted()
     }
 
     private fun renderPrayerList() {
         binding.prayerListContainer.removeAllViews()
-        val month = selectedCalendar.get(Calendar.MONTH) + 1
-        val day = selectedCalendar.get(Calendar.DAY_OF_MONTH)
+        val cal = Calendar.getInstance()
+        val month = cal.get(Calendar.MONTH) + 1
+        val day = cal.get(Calendar.DAY_OF_MONTH)
         val times = PrayerTimesTable.getPrayerTimes(month, day)
-
-        val isToday = isSameDay(selectedCalendar, Calendar.getInstance())
-        val nextPrayer = if (isToday) findNextPrayer() else null
+        val nextPrayer = findNextPrayer()
 
         val rows = listOf(
             Triple(PrayerType.FAJR, times.fajr, R.drawable.ic_fajr),
@@ -144,3 +85,126 @@ class HomeFragment : Fragment() {
 
         for ((prayer, time, iconRes) in rows) {
             val itemBinding = ItemPrayerBinding.inflate(layoutInflater, binding.prayerListContainer, false)
+            itemBinding.textPrayerName.text = prayer.arabicName
+            itemBinding.textPrayerTime.text = applyOffset(time, settings.getManualOffsetMinutes(prayer))
+            itemBinding.iconPrayer.setImageResource(iconRes)
+
+            val alertMode = settings.getAlertMode(prayer)
+            itemBinding.iconAlertMode.setImageResource(alertIconFor(prayer, alertMode))
+
+            if (prayer == nextPrayer) {
+                itemBinding.root.setBackgroundResource(R.drawable.bg_prayer_item_upcoming)
+            }
+            binding.prayerListContainer.addView(itemBinding.root)
+        }
+    }
+
+    private fun alertIconFor(prayer: PrayerType, mode: AlertMode): Int {
+        if (!prayer.hasAdhan) return R.drawable.ic_off
+        return when (mode) {
+            AlertMode.FULL_ADHAN -> R.drawable.ic_sound_full
+            AlertMode.SHORT_BEEP -> R.drawable.ic_bell
+            AlertMode.SILENT -> R.drawable.ic_mute
+            AlertMode.OFF -> R.drawable.ic_off
+        }
+    }
+
+    private fun applyOffset(time: String, offsetMinutes: Int): String {
+        if (offsetMinutes == 0) return time
+        val parts = time.split(":")
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, parts[0].toInt())
+        cal.set(Calendar.MINUTE, parts[1].toInt())
+        cal.add(Calendar.MINUTE, offsetMinutes)
+        return String.format("%02d:%02d", cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE))
+    }
+
+    private fun findNextPrayer(): PrayerType {
+        val now = Calendar.getInstance()
+        val month = now.get(Calendar.MONTH) + 1
+        val day = now.get(Calendar.DAY_OF_MONTH)
+        val times = PrayerTimesTable.getPrayerTimes(month, day)
+        val ordered = listOf(
+            PrayerType.FAJR to times.fajr,
+            PrayerType.DHUHR to times.dhuhr,
+            PrayerType.ASR to times.asr,
+            PrayerType.MAGHRIB to times.maghrib,
+            PrayerType.ISHA to times.isha
+        )
+        for ((prayer, time) in ordered) {
+            val target = timeToCalendar(time)
+            if (target.after(now)) return prayer
+        }
+        return PrayerType.FAJR // بعد العشاء، القادمة هي فجر الغد
+    }
+
+    private fun timeToCalendar(hhmm: String): Calendar {
+        val parts = hhmm.split(":")
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, parts[0].toInt())
+        cal.set(Calendar.MINUTE, parts[1].toInt())
+        cal.set(Calendar.SECOND, 0)
+        return cal
+    }
+
+    private fun startCountdown() {
+        countdownTimer?.cancel()
+        val nextPrayer = findNextPrayer()
+        binding.textNextPrayerName.text = nextPrayer.arabicName
+
+        val now = Calendar.getInstance()
+        val month = now.get(Calendar.MONTH) + 1
+        val day = now.get(Calendar.DAY_OF_MONTH)
+        val times = PrayerTimesTable.getPrayerTimes(month, day)
+        var target = timeToCalendar(times.timeFor(nextPrayer))
+
+        if (!target.after(now)) {
+            // الصلاة القادمة هي فجر الغد
+            val tomorrow = now.clone() as Calendar
+            tomorrow.add(Calendar.DAY_OF_YEAR, 1)
+            val tMonth = tomorrow.get(Calendar.MONTH) + 1
+            val tDay = tomorrow.get(Calendar.DAY_OF_MONTH)
+            val tomorrowTimes = PrayerTimesTable.getPrayerTimes(tMonth, tDay)
+            target = timeToCalendar(tomorrowTimes.fajr)
+            target.add(Calendar.DAY_OF_YEAR, 1)
+        }
+
+        val diff = target.timeInMillis - System.currentTimeMillis()
+        if (diff <= 0) return
+
+        countdownTimer = object : CountDownTimer(diff, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val h = millisUntilFinished / 3600000
+                val m = (millisUntilFinished % 3600000) / 60000
+                val s = (millisUntilFinished % 60000) / 1000
+                if (_binding != null) {
+                    binding.textCountdown.text = String.format("%02d:%02d:%02d", h, m, s)
+                }
+            }
+
+            override fun onFinish() {
+                if (_binding != null) {
+                    renderPrayerList()
+                    startCountdown()
+                }
+            }
+        }.start()
+    }
+
+    private fun PrayerType.timeFor(all: com.aseelan.adhan.data.PrayerTimes) = when (this) {
+        PrayerType.FAJR -> all.fajr
+        PrayerType.SHURUQ -> all.shuruq
+        PrayerType.DHUHR -> all.dhuhr
+        PrayerType.ASR -> all.asr
+        PrayerType.MAGHRIB -> all.maghrib
+        PrayerType.ISHA -> all.isha
+    }
+
+    private fun com.aseelan.adhan.data.PrayerTimes.timeFor(type: PrayerType) = type.timeFor(this)
+
+    override fun onDestroyView() {
+        countdownTimer?.cancel()
+        _binding = null
+        super.onDestroyView()
+    }
+}
