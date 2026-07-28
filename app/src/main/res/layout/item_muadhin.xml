@@ -1,12 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RadioButton xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/radio_muadhin"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/row_muadhin_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layoutDirection="rtl"
-    android:paddingVertical="14dp"
-    android:paddingHorizontal="4dp"
-    android:text="اسم المؤذن"
-    android:textColor="@color/text_dark"
-    android:textSize="16sp"
-    android:buttonTint="@color/olive_medium" />
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="10dp">
+
+    <ImageView
+        android:id="@+id/btn_preview_muadhin"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="@drawable/bg_kaaba_circle"
+        android:padding="6dp"
+        android:src="@drawable/ic_sound_full" />
+
+    <RadioButton
+        android:id="@+id/radio_muadhin"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:layoutDirection="rtl"
+        android:text="اسم المؤذن"
+        android:textColor="@color/text_dark"
+        android:textSize="16sp"
+        android:buttonTint="@color/olive_medium" />
+
+</LinearLayout>
