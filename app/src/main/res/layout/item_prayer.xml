@@ -43,7 +43,7 @@
         android:textSize="18sp" />
 
     <ImageView
-        android:id="@+id/icon_alert_state"
+        android:id="@+id/iconAlertState"
         android:layout_width="22dp"
         android:layout_height="22dp"
         android:src="@drawable/ic_sound_full" />
