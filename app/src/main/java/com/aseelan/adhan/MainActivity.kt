@@ -68,5 +68,22 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        requestIgnoreBatteryOptimizations()
+    }
+
+    private fun requestIgnoreBatteryOptimizations() {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+        val isIgnoring = powerManager?.isIgnoringBatteryOptimizations(packageName) ?: true
+        if (!isIgnoring) {
+            try {
+                startActivity(
+                    Intent(
+                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                        Uri.parse("package:$packageName")
+                    )
+                )
+            } catch (_: Exception) {
+            }
+        }
     }
 }
