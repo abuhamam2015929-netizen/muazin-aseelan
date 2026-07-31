@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/olive_dark"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <ImageView
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:src="@drawable/ic_mosque" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/notif_ongoing_title"
+        android:textColor="@color/gold_light"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/text_ringing_prayer_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="الفجر"
+        android:textColor="@color/off_white"
+        android:textSize="44sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/text_ringing_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:text="حان الآن وقت الصلاة"
+        android:textColor="@color/off_white"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:gravity="center"
+        android:text="اضغط أي زر في جوالك لإيقاف الأذان"
+        android:textColor="@color/gold"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/btn_stop_ringing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/bg_qibla_button"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="@string/stop_azan"
+        android:textColor="@color/off_white"
+        android:textSize="17sp"
+        android:textStyle="bold" />
+
+</LinearLayout>
