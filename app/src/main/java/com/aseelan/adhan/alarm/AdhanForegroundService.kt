@@ -23,11 +23,6 @@ import com.aseelan.adhan.util.NotificationHelper
 
 const val ACTION_STOP_ADHAN = "com.aseelan.adhan.action.STOP_ADHAN"
 
-/**
- * خدمة أمامية (Foreground Service) تُشغَّل عند حلول وقت الصلاة أو التذكير المسبق.
- * تعمل حتى لو كان التطبيق مغلقاً تماماً، وتُظهر إشعاراً وتشغّل صوت الأذان
- * حسب وضع التنبيه المختار لتلك الصلاة.
- */
 class AdhanForegroundService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
@@ -63,7 +58,6 @@ class AdhanForegroundService : Service() {
                 AlertMode.OFF -> stopAdhanAndService()
             }
         } else {
-            // التذكير المسبق: اهتزاز خفيف + إشعار فقط، بدون أذان كامل
             vibrateOnly()
             stopSelfAfterDelay(4000)
         }
@@ -77,7 +71,6 @@ class AdhanForegroundService : Service() {
         val resId = resources.getIdentifier(muadhin.rawResName, "raw", packageName)
 
         if (resId == 0) {
-            // لم يتم رفع ملف الأذان الصوتي بعد - نكتفي بنغمة قصيرة + اهتزاز
             playShortBeep()
             vibrateOnly()
             stopSelfAfterDelay(6000)
@@ -135,6 +128,7 @@ class AdhanForegroundService : Service() {
         } catch (_: Exception) {
         }
         mediaPlayer = null
+        AlarmRingingActivity.finishIfShowing()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -157,7 +151,7 @@ class AdhanForegroundService : Service() {
             getString(R.string.notif_prayer_time, prayer.arabicName)
         }
 
-        return NotificationCompat.Builder(this, NotificationHelper.CHANNEL_ID_ADHAN)
+        val builder = NotificationCompat.Builder(this, NotificationHelper.CHANNEL_ID_ADHAN)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(title)
@@ -166,7 +160,19 @@ class AdhanForegroundService : Service() {
             .setAutoCancel(true)
             .setContentIntent(contentIntent)
             .addAction(0, getString(R.string.stop_azan), stopPendingIntent)
-            .build()
+
+        if (!isPreReminder) {
+            val ringingIntent = Intent(this, AlarmRingingActivity::class.java).apply {
+                putExtra(EXTRA_PRAYER_KEY, prayer.key)
+            }
+            val fullScreenPendingIntent = PendingIntent.getActivity(
+                this, 1, ringingIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            builder.setFullScreenIntent(fullScreenPendingIntent, true)
+        }
+
+        return builder.build()
     }
 
     override fun onDestroy() {
