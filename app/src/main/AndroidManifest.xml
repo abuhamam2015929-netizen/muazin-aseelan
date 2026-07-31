@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-
+<uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <application
         android:name=".AzanApplication"
         android:allowBackup="true"
@@ -34,7 +34,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+<activity
+            android:name=".alarm.AlarmRingingActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.MuazinAseelan" />
         <receiver
             android:name=".alarm.AdhanReceiver"
             android:exported="false" />
