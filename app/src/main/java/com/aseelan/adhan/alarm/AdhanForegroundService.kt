@@ -100,6 +100,30 @@ class AdhanForegroundService : Service() {
     }
 
     private fun playShortBeep() {
+        val resId = resources.getIdentifier("short_beep", "raw", packageName)
+        if (resId != 0) {
+            try {
+                mediaPlayer = MediaPlayer().apply {
+                    setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_ALARM)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build()
+                    )
+                    val afd = resources.openRawResourceFd(resId)
+                    if (afd != null) {
+                        setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                        afd.close()
+                    }
+                    setOnCompletionListener { stopAdhanAndService() }
+                    prepare()
+                    start()
+                }
+                return
+            } catch (e: Exception) {
+            }
+        }
+
         try {
             val tg = ToneGenerator(AudioManager.STREAM_ALARM, 90)
             tg.startTone(ToneGenerator.TONE_PROP_BEEP2, 1500)
