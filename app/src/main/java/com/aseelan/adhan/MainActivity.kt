@@ -69,6 +69,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
         requestIgnoreBatteryOptimizations()
+        requestOverlayPermissionIfNeeded()
+        requestFullScreenIntentPermissionIfNeeded()
     }
 
     private fun requestIgnoreBatteryOptimizations() {
@@ -83,6 +85,39 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
             } catch (_: Exception) {
+            }
+        }
+    }
+
+    private fun requestOverlayPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(this)) {
+                try {
+                    startActivity(
+                        Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:$packageName")
+                        )
+                    )
+                } catch (_: Exception) {
+                }
+            }
+        }
+    }
+
+    private fun requestFullScreenIntentPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val notificationManager = getSystemService(android.app.NotificationManager::class.java)
+            if (notificationManager != null && !notificationManager.canUseFullScreenIntent()) {
+                try {
+                    startActivity(
+                        Intent(
+                            Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+                            Uri.parse("package:$packageName")
+                        )
+                    )
+                } catch (_: Exception) {
+                }
             }
         }
     }
