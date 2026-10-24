@@ -69,7 +69,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         requestIgnoreBatteryOptimizations()
-        requestOverlayPermissionIfNeeded()
         requestFullScreenIntentPermissionIfNeeded()
     }
 
@@ -85,22 +84,6 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
             } catch (_: Exception) {
-            }
-        }
-    }
-
-    private fun requestOverlayPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.canDrawOverlays(this)) {
-                try {
-                    startActivity(
-                        Intent(
-                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:$packageName")
-                        )
-                    )
-                } catch (_: Exception) {
-                }
             }
         }
     }
