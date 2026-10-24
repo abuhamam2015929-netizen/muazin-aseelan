@@ -29,11 +29,21 @@ class AlarmRingingActivity : AppCompatActivity() {
         binding = ActivityAlarmRingingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val prayerKey = intent.getStringExtra(EXTRA_PRAYER_KEY)
-        val prayer = PrayerType.values().firstOrNull { it.key == prayerKey }
-        binding.textRingingPrayerName.text = prayer?.arabicName ?: ""
+        updatePrayerName(intent)
 
         binding.btnStopRinging.setOnClickListener { stopAdhanAndClose() }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        updatePrayerName(intent)
+    }
+
+    private fun updatePrayerName(intent: Intent?) {
+        val prayerKey = intent?.getStringExtra(EXTRA_PRAYER_KEY)
+        val prayer = PrayerType.values().firstOrNull { it.key == prayerKey }
+        binding.textRingingPrayerName.text = prayer?.arabicName ?: ""
     }
 
     private fun setupShowOverLockScreen() {
