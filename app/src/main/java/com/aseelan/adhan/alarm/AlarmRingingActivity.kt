@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.aseelan.adhan.data.PrayerType
@@ -12,6 +13,7 @@ import com.aseelan.adhan.databinding.ActivityAlarmRingingBinding
 class AlarmRingingActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAlarmRingingBinding
+    private var stopped = false
 
     companion object {
         private var currentInstance: AlarmRingingActivity? = null
@@ -37,6 +39,7 @@ class AlarmRingingActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        stopped = false
         updatePrayerName(intent)
     }
 
@@ -62,15 +65,26 @@ class AlarmRingingActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
+    // أي زر (ومنها زر الصوت) يوقف الأذان
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             stopAdhanAndClose()
+        }
+        return true
+    }
+
+    // لمس الشاشة في أي مكان يوقف الأذان
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.action == MotionEvent.ACTION_DOWN) {
+            stopAdhanAndClose()
             return true
         }
-        return super.dispatchKeyEvent(event)
+        return super.dispatchTouchEvent(ev)
     }
 
     private fun stopAdhanAndClose() {
+        if (stopped) return
+        stopped = true
         val stopIntent = Intent(this, AdhanForegroundService::class.java).apply {
             action = ACTION_STOP_ADHAN
         }
