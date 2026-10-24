@@ -8,8 +8,13 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.ToneGenerator
+import android.media.VolumeProvider
+import android.media.session.MediaSession
+import android.media.session.PlaybackState
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.core.app.NotificationCompat
@@ -26,6 +31,8 @@ const val ACTION_STOP_ADHAN = "com.aseelan.adhan.action.STOP_ADHAN"
 class AdhanForegroundService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
+    private var volumeKeySession: MediaSession? = null
+    private var stopping = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -34,6 +41,8 @@ class AdhanForegroundService : Service() {
             stopAdhanAndService()
             return START_NOT_STICKY
         }
+
+        stopping = false
 
         val prayerKey = intent?.getStringExtra(EXTRA_PRAYER_KEY)
         val isPreReminder = intent?.getBooleanExtra(EXTRA_IS_PRE_REMINDER, false) ?: false
@@ -51,6 +60,9 @@ class AdhanForegroundService : Service() {
         startForeground(NotificationHelper.NOTIF_ID_ADHAN, notification)
 
         if (!isPreReminder) {
+            if (mode != AlertMode.OFF) {
+                startVolumeKeyStopper()
+            }
             when (mode) {
                 AlertMode.FULL_ADHAN -> playFullAdhan(prayer, settings)
                 AlertMode.SHORT_BEEP -> playShortBeep()
@@ -63,6 +75,44 @@ class AdhanForegroundService : Service() {
         }
 
         return START_NOT_STICKY
+    }
+
+    /**
+     * يجعل أي ضغطة على زر رفع أو خفض الصوت توقف الأذان،
+     * سواء كان الجوال مقفلاً أو مفتوحاً وفي أي تطبيق.
+     */
+    private fun startVolumeKeyStopper() {
+        if (volumeKeySession != null) return
+        try {
+            val session = MediaSession(this, "AdhanVolumeKeyStopper")
+
+            val provider = object : VolumeProvider(VOLUME_CONTROL_RELATIVE, 100, 50) {
+                override fun onAdjustVolume(direction: Int) {
+                    if (direction != 0) {
+                        Handler(Looper.getMainLooper()).post { stopAdhanAndService() }
+                    }
+                }
+            }
+            session.setPlaybackToRemote(provider)
+            session.setPlaybackState(
+                PlaybackState.Builder()
+                    .setActions(0)
+                    .setState(PlaybackState.STATE_PLAYING, 0L, 1f)
+                    .build()
+            )
+            session.isActive = true
+            volumeKeySession = session
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun releaseVolumeKeyStopper() {
+        try {
+            volumeKeySession?.isActive = false
+            volumeKeySession?.release()
+        } catch (_: Exception) {
+        }
+        volumeKeySession = null
     }
 
     private fun playFullAdhan(prayer: PrayerType, settings: SettingsRepository) {
@@ -142,16 +192,19 @@ class AdhanForegroundService : Service() {
     }
 
     private fun stopSelfAfterDelay(delayMs: Long) {
-        android.os.Handler(mainLooper).postDelayed({ stopAdhanAndService() }, delayMs)
+        Handler(mainLooper).postDelayed({ stopAdhanAndService() }, delayMs)
     }
 
     private fun stopAdhanAndService() {
+        if (stopping) return
+        stopping = true
         try {
             mediaPlayer?.stop()
             mediaPlayer?.release()
         } catch (_: Exception) {
         }
         mediaPlayer = null
+        releaseVolumeKeyStopper()
         AlarmRingingActivity.finishIfShowing()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -204,6 +257,7 @@ class AdhanForegroundService : Service() {
             mediaPlayer?.release()
         } catch (_: Exception) {
         }
+        releaseVolumeKeyStopper()
         super.onDestroy()
     }
 }
